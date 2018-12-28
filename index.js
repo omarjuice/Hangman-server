@@ -88,7 +88,7 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log('disconnected');
         let user = GameRooms.getUserById(socket.id)
-        if (user && roomList[user.room]) {
+        if (user && user.room && roomList[user.room]) {
 
             io.to(user.room).emit('updateUserList', { userList: roomList[user.room].removeUser(socket.id) })
             io.to(user.room).emit('newMessage',
