@@ -30,6 +30,9 @@ io.on('connection', (socket) => {
         if (roomList[room] && roomList[room].checkRoomForUser(name)) {
             return socket.emit('errorMessage', 'A user with that name already exists in that room')
         }
+        if (roomList[room] && roomList[room].getNumUsers() > 4) {
+            return socket.emit('errorMessage', 'That room is full!')
+        }
         socket.join(room);
         if (!roomList[room]) {
             GameRooms.addRoom(room)
@@ -84,25 +87,40 @@ io.on('connection', (socket) => {
             }
         }
     })
+    socket.on('skipMyTurn', (room) => {
+        if (roomList[room]) {
+            io.to(room).emit('nextTurn', roomList[room].skipTurn())
+            io.to(room).emit('updateUserList', { userList: roomList[room].getRoomUsers() })
+        }
+    })
+    socket.on('skipMaster', (room) => {
+        if (roomList[room]) {
+            io.to(room).emit('newMaster', roomList[room].newGame())
+            io.to(room).emit('updateUserList', { userList: roomList[room].getRoomUsers() })
+        }
+    })
 
     socket.on('disconnect', () => {
         console.log('disconnected');
         let user = GameRooms.getUserById(socket.id)
-        if (user && user.room && roomList[user.room]) {
+        if (user) {
+            let { room } = user
+            if (room && roomList[room]) {
+                io.to(room).emit('newMessage',
+                    roomList[room].addMessage(generateMessage({
+                        from: 'Admin',
+                        text: `${user.name} has left.`
+                    }))
+                )
+                io.to(room).emit('updateUserList', { userList: roomList[room].removeUser(socket.id) })
+                io.to(room).emit('nextTurn', roomList[room].whoseTurn('bye'))
 
-            io.to(user.room).emit('updateUserList', { userList: roomList[user.room].removeUser(socket.id) })
-            io.to(user.room).emit('newMessage',
-                roomList[user.room].addMessage(generateMessage({
-                    from: 'Admin',
-                    text: `${user.name} has left.`
-                }))
-            )
-            io.to(user.room).emit('nextTurn', roomList[user.room].whoseTurn())
-            if (user.name === roomList[user.room].hangman.master.name || roomList[user.room].getNumUsers() < 2) {
-                io.emit('newMaster', roomList[user.room].deleteMaster())
+                if (user.name === roomList[room].hangman.master.name || roomList[room].getNumUsers() < 2) {
+                    io.to(room).emit('newMaster', roomList[room].deleteMaster())
+                }
             }
+            GameRooms.updateRooms()
         }
-        GameRooms.updateRooms()
     })
 })
 

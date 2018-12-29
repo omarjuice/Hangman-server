@@ -11,13 +11,14 @@ class Room {
             hint: '',
             remainingLetters: [...alphabet],
             selectedLetters: [],
+            skip: 0,
             turn: {},
             isCorrect: false,
             incorrect: 0,
             gameOver: false,
             numGames: 0
         }
-        this.timeout = null;
+        this.timeout = null
     }
     addUser(id, name) {
         let roomName = this.name
@@ -58,7 +59,9 @@ class Room {
     deleteMaster() {
         this.hangman.master = {};
         this.hangman.isChoosing = false;
-        this.hangman.turn = {}
+        this.hangman.turn = {
+            name: ''
+        }
         return this.hangman
     }
 
@@ -66,7 +69,7 @@ class Room {
         if (this.hangman.gameOver) {
             return this.hangman
         }
-        if (selectedLetter) {
+        if (selectedLetter && !this.hangman.selectedLetters.includes(selectedLetter)) {
             this.hangman.selectedLetters.push(selectedLetter);
             this.hangman.word.includes(selectedLetter) ? this.hangman.turn.score++ : this.hangman.incorrect++
         }
@@ -93,15 +96,18 @@ class Room {
         }
         if (!this.hangman.gameOver) { this.hangman.gameOver = this.checkForWin() }
         this.hangman.isCorrect = this.checkForWin()
-        let { selectedLetters, master } = this.hangman
+        let { selectedLetters, master, skip } = this.hangman
         let players = this.users
             .filter((user) => user.name !== master.name)
         if (players.length < 1) { return this.hangman }
-        this.hangman.turn = players[selectedLetters.length >= players.length ? selectedLetters.length % players.length : selectedLetters.length]
-        if (!players[selectedLetters.length >= players.length ? selectedLetters.length % players.length : selectedLetters.length]) {
-            console.log(players, selectedLetters, selectedLetters.length % players.length, selectedLetters.length)
-        }
+        this.hangman.turn = players[selectedLetters.length + skip >= players.length ? (selectedLetters.length + skip) % players.length : selectedLetters.length + skip]
+
         return this.hangman
+    }
+    skipTurn() {
+        this.hangman.skip++;
+        this.hangman.incorrect++;
+        return this.whoseTurn();
     }
     checkForWin() {
         if (this.hangman.word.length < 3) {
@@ -123,6 +129,7 @@ class Room {
             turn: {
                 name: ''
             },
+            skip: 0,
             isCorrect: false,
             incorrect: 0,
             gameOver: false
