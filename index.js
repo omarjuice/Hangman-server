@@ -83,7 +83,7 @@ io.on('connection', (socket) => {
                 roomList[room].timeout = setTimeout(() => {
                     io.to(room).emit('nextTurn', roomList[room].newGame())
                     roomList[room].timeout = null
-                }, 2000)
+                }, 2500)
             }
         }
     })
