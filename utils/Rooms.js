@@ -1,3 +1,5 @@
+const { fetchUrban } = require('../utils/requests');
+
 const alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 class Room {
     constructor(name) {
@@ -80,11 +82,24 @@ class Room {
         this.hangman.remainingLetters = this.hangman.remainingLetters.filter((letter) => letter !== selectedLetter)
         return this.hangman
     }
-    setWordAndHint(word, hint) {
+    async setWordAndHint(word, hint) {
         this.hangman.isChoosing = false;
         this.hangman.word = word.split('');
-        this.hangman.hint = hint;
-        return this.hangman
+
+        if (!hint) {
+
+            let { data, error } = await fetchUrban(word.toLowerCase())
+            if (error) {
+                throw new Error(error.message)
+            }
+            this.hangman.hint = data
+            return { hangman: this.hangman }
+        } else {
+            this.hangman.hint = hint
+            return { hangman: this.hangman }
+        }
+
+
     }
     whoseTurn() {
         if (this.hangman.gameOver) {

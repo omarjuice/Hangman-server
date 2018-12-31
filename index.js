@@ -9,7 +9,6 @@ const server = http.createServer(app)
 const io = socketIO(server)
 const { Rooms } = require('./utils/Rooms')
 const { generateMessage } = require('./utils/generateMessage');
-const { fetchUrban } = require('./utils/requests');
 
 const corsOptions = {
     origin: process.env.CLIENT,
@@ -76,9 +75,14 @@ io.on('connection', (socket) => {
             io.to(room).emit('letterSelected', roomList[room].selectLetter(letter))
         }
     })
-    socket.on('newWord', ({ word, hint, room }) => {
+    socket.on('newWord', async ({ word, hint, room }) => {
         if (roomList[room]) {
-            io.to(room).emit('wordSet', roomList[room].setWordAndHint(word, hint))
+            const { hangman, error } = await roomList[room].setWordAndHint(word, hint)
+            if (error) {
+                return io.emit('errorMessage', error.message)
+            } else {
+                io.to(room).emit('wordSet', hangman)
+            }
         }
     })
     socket.on('isItMyTurn', (room) => {
