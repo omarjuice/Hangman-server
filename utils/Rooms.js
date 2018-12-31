@@ -4,6 +4,7 @@ class Room {
         this.name = name
         this.users = []
         this.messages = []
+        this.dictionary = false;
         this.hangman = {
             master: {},
             isChoosing: false,
@@ -24,9 +25,8 @@ class Room {
         let roomName = this.name
         const newUser = { id, name, room: roomName, score: 0 }
         this.users.push(newUser)
-        return newUser
+        return [newUser, this.dictionary]
     }
-
     getRoomUsers() {
         return this.users
     }
@@ -43,6 +43,10 @@ class Room {
     }
     checkRoomForUser(name) {
         return this.users.filter((user) => user.name === name).length !== 0
+    }
+    setDictionary(dict) {
+        this.dictionary = dict;
+        return
     }
     addMessage(message) {
         this.messages.push(message)

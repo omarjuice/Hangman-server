@@ -1,6 +1,7 @@
 const express = require('express');
 const app = express()
-const dotenv = require('dotenv').config()
+const dotenv = require('dotenv')
+dotenv.config()
 const cors = require('cors')
 const http = require('http')
 const socketIO = require('socket.io');
@@ -8,13 +9,13 @@ const server = http.createServer(app)
 const io = socketIO(server)
 const { Rooms } = require('./utils/Rooms')
 const { generateMessage } = require('./utils/generateMessage');
+const { fetchUrban } = require('./utils/requests');
 
 const corsOptions = {
     origin: process.env.CLIENT,
     optionsSuccessStatus: 200,
 }
 app.use(cors(corsOptions))
-
 app.get('/', function (req, res) {
     res.status(200).send('OK')
 })
@@ -25,18 +26,23 @@ io.on('connection', (socket) => {
     console.log('connected')
     io.emit('updateMetaData', GameRooms.getMetaData())
     GameRooms.updateRooms()
-    socket.on('join', ({ name, room }) => {
+    socket.on('join', ({ name, room, dictionary }) => {
 
+        if (!roomList[room]) {
+            GameRooms.addRoom(room)
+            return socket.emit('askForDict', { room, name })
+        }
+        if (dictionary) {
+            roomList[room].setDictionary(dictionary)
+        }
         if (roomList[room] && roomList[room].checkRoomForUser(name)) {
             return socket.emit('errorMessage', 'A user with that name already exists in that room')
         }
         if (roomList[room] && roomList[room].getNumUsers() > 4) {
             return socket.emit('errorMessage', 'That room is full!')
         }
-        socket.join(room);
-        if (!roomList[room]) {
-            GameRooms.addRoom(room)
-        }
+        socket.join(room)
+
         roomList[room].removeUser(socket.id)
 
 
