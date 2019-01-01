@@ -77,12 +77,21 @@ io.on('connection', (socket) => {
     })
     socket.on('newWord', async ({ word, hint, room }) => {
         if (roomList[room]) {
-            const { hangman, error } = await roomList[room].setWordAndHint(word, hint)
-            if (error) {
-                return io.emit('errorMessage', error.message)
-            } else {
-                io.to(room).emit('wordSet', hangman)
-            }
+            return roomList[room].setWordAndHint(word, hint)
+                .then((hangman) => {
+                    if (!hangman.hint) {
+                        socket.emit('wordInfo', 'Could not find that word!')
+                    } else {
+                        io.to(room).emit('wordSet', hangman)
+                    }
+                })
+                .catch((e) => {
+                    if (e === 'No such entry found') {
+                        return socket.emit('wordInfo', 'Could not find that word!')
+                    }
+                    socket.emit('errorMessage', 'Server Error')
+
+                })
         }
     })
     socket.on('isItMyTurn', (room) => {

@@ -1,4 +1,4 @@
-const { fetchUrban } = require('../utils/requests');
+const { fetchUrban, fetchOxford } = require('../utils/requests');
 
 const alphabet = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
 class Room {
@@ -83,20 +83,38 @@ class Room {
         return this.hangman
     }
     async setWordAndHint(word, hint) {
-        this.hangman.isChoosing = false;
-        this.hangman.word = word.split('');
-
+        word = word.toUpperCase()
         if (!hint) {
-
-            let { data, error } = await fetchUrban(word.toLowerCase())
-            if (error) {
-                throw new Error(error.message)
+            if (this.dictionary === 'Urban') {
+                return fetchUrban(word.toLowerCase())
+                    .then((def) => {
+                        this.hangman.hint = def
+                        if (def) {
+                            this.hangman.isChoosing = false;
+                            this.hangman.word = word.split('');
+                        }
+                        return Promise.resolve(this.hangman)
+                    }).catch((e) => {
+                        throw (e)
+                    })
+            } else if (this.dictionary === 'Oxford') {
+                return fetchOxford(word.toLowerCase())
+                    .then((def) => {
+                        this.hangman.hint = def
+                        if (def) {
+                            this.hangman.isChoosing = false;
+                            this.hangman.word = word.split('');
+                        }
+                        return Promise.resolve(this.hangman)
+                    }).catch((e) => {
+                        throw (e)
+                    })
             }
-            this.hangman.hint = data
-            return { hangman: this.hangman }
         } else {
+            this.hangman.isChoosing = false;
+            this.hangman.word = word.split('');
             this.hangman.hint = hint
-            return { hangman: this.hangman }
+            return this.hangman
         }
 
 
