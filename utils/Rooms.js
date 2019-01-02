@@ -197,7 +197,8 @@ class Rooms {
         return Object.values(this.rooms).map((room) => {
             return {
                 name: room.name,
-                numUsers: room.getNumUsers()
+                numUsers: room.getNumUsers(),
+                dictionary: room.dictionary
             }
         })
     }
