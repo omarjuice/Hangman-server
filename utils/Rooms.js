@@ -166,6 +166,7 @@ class Room {
             turn: {
                 name: ''
             },
+            hint: '',
             skip: 0,
             isCorrect: false,
             incorrect: 0,
