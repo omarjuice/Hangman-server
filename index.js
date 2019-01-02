@@ -29,9 +29,11 @@ io.on('connection', (socket) => {
 
         if (!roomList[room]) {
             GameRooms.addRoom(room)
+        }
+        if (roomList[room] && !roomList[room].dictionary && !dictionary) {
             return socket.emit('askForDict', { room, name })
         }
-        if (dictionary) {
+        if (roomList[room] && dictionary && !roomList[room].dictionary) {
             roomList[room].setDictionary(dictionary)
         }
         if (roomList[room] && roomList[room].checkRoomForUser(name)) {
