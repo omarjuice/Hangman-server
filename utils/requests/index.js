@@ -17,7 +17,7 @@ const fetchUrban = async (word) => {
         .then(({ data }) => {
             try {
                 return Promise.resolve(
-                    data.list.length > 0 ? editUrban(data.list.sort((a, b) => b.thumbs_up > a.thumbs_up)[0].definition, word) : false
+                    data.list.length > 0 ? editUrban(data.list.sort((a, b) => b.thumbs_up / (b.thumbs_down ? b.thumbs_down : b.thumbs_up / 2) > a.thumbs_up / (a.thumbs_down ? a.thumbs_down : a.thumbs_up / 2))[0].definition, word) : false
                 )
             } catch (e) {
                 throw ('No such entry found')
