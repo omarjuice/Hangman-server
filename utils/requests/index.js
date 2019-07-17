@@ -1,5 +1,5 @@
 const axios = require('axios')
-const Dictionary = require("oxford-dictionary-api");
+const Dictionary = require("./oxford");
 const dotenv = require('dotenv').config()
 
 const app_id = process.env.OX_APP_ID;
@@ -30,9 +30,11 @@ const fetchOxford = async word => {
     return new Promise((resolve, reject) => {
         dict.find(word, function (error, data) {
             if (error) {
+                console.log(error)
                 return reject(error)
             }
             try {
+                console.log(data)
                 resolve((data.results[0].lexicalEntries[0].entries[0].senses[0].definitions[0]))
             } catch (e) {
                 reject('No such entry found')
@@ -40,6 +42,12 @@ const fetchOxford = async word => {
         })
     })
 }
+
+fetchOxford('hello').then((res) => {
+    console.log(res)
+}).catch(e => {
+    console.log(e)
+})
 
 module.exports = { fetchUrban, fetchOxford }
 
